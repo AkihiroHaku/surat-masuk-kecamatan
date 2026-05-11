@@ -1,0 +1,11 @@
+[
+  {
+    "id": "tdk-001",
+    "surat_id": "ltr-001",
+    "from_user": "Admin Kecamatan",
+    "to_user": "Kasi Pemerintahan",
+    "note": "Segera siapkan data pendukung untuk jawaban surat.",
+    "created_at": "2026-04-21T08:15:00.000Z",
+    "status": "Diproses"
+  }
+]

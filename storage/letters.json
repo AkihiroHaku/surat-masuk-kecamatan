@@ -1,0 +1,24 @@
+[
+  {
+    "id": "ed09ee61-34e6-4e1c-939b-aa82cbea4e0f",
+    "nomor_agenda": "AGD-2026-0001",
+    "nomor_surat": "018/ VIII/2025/UKM/D09/ITS/V/02/A-1",
+    "tanggal_surat": "2026-05-05",
+    "tanggal_diterima": "2026-05-05",
+    "pengirim": "saga",
+    "instansi_pengirim": "saga",
+    "perihal": "pinkam",
+    "kategori": "Dinas",
+    "prioritas": "Normal",
+    "status": "Selesai",
+    "ringkasan_ai": "",
+    "rekomendasi_ai": "",
+    "disposisi": "Kepada unit terkait untuk ditindaklanjuti.",
+    "file_url": "/uploads/018-viii-2025-ukm-d09-its-v-02-a-1-1777986905121.pdf",
+    "file_name": "018-viii-2025-ukm-d09-its-v-02-a-1-1777986905121.pdf",
+    "ocr_text": "",
+    "created_by": "usr-admin",
+    "created_at": "2026-05-05T13:15:10.157Z",
+    "updated_at": "2026-05-09T16:51:18.929Z"
+  }
+]
