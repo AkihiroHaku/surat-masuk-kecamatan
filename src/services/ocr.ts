@@ -25,7 +25,7 @@ export async function extractTextFromFile(file: File) {
     return { text: "", provider: "pdf-parse", warnings };
   }
 
-  const result = await Tesseract.recognize(bytes, "eng");
+  const result = await Tesseract.recognize(bytes, "ind+eng");
   return {
     text: result.data.text.trim(),
     provider: "tesseract.js",

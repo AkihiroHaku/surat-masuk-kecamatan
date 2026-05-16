@@ -85,14 +85,18 @@ export async function extractLetterInsight(text: string): Promise<ParsedInsight>
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+      }
+    });
 
     const prompt = `
 Kamu adalah AI untuk membaca surat resmi pemerintahan Indonesia.
 
 ATURAN WAJIB:
-- Output HANYA JSON valid, tidak ada teks lain sama sekali
-- Jangan gunakan markdown atau code block
+- Output HANYA JSON valid
 - Semua field harus ada di output
 - Gunakan string kosong "" jika data tidak ditemukan (BUKAN null)
 - Format tanggal: YYYY-MM-DD
@@ -132,18 +136,10 @@ KETENTUAN PRIORITAS:
 
 TEKS SURAT:
 ${text.slice(0, 12000)}
-
-KELUARKAN HANYA JSON VALID. TIDAK ADA TEKS LAIN.
 `;
 
     const result = await model.generateContent(prompt);
-    let output = result.response.text();
-
-    // Bersihkan jika model mengembalikan markdown code block
-    output = output
-      .replace(/```json\s*/gi, "")
-      .replace(/```\s*/gi, "")
-      .trim();
+    const output = result.response.text();
 
     const parsed = JSON.parse(output) as Partial<ParsedInsight>;
 

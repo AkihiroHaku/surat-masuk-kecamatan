@@ -9,6 +9,9 @@ export async function POST(req: Request) {
 
         const model = genAI.getGenerativeModel({
             model: "gemini-1.5-flash",
+            generationConfig: {
+                responseMimeType: "application/json",
+            }
         });
 
         const prompt = `
@@ -19,7 +22,6 @@ Tugas kamu adalah mengekstrak informasi penting dari teks surat berikut dan meng
 ATURAN WAJIB:
 - Output HARUS berupa JSON valid
 - Jangan tambahkan penjelasan apapun
-- Jangan menggunakan markdown
 - Gunakan null jika data tidak ditemukan
 - Semua field wajib ada
 - Format tanggal: YYYY-MM-DD
@@ -63,18 +65,11 @@ KETENTUAN:
 
 TEKS SURAT:
 ${text}
-
----
-
-KELUARKAN HANYA JSON VALID.
 `;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        let output = response.text();
-
-        // bersihkan jika Gemini kasih ```json
-        output = output.replace(/```json|```/g, "").trim();
+        const output = response.text();
 
         let parsed;
 

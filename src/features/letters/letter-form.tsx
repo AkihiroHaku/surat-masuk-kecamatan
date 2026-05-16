@@ -10,6 +10,7 @@ import { CheckCircle2, FileText, FileUp, Sparkles, UploadCloud, X } from "lucide
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { extractTextFromPdfWithOcr } from "@/lib/pdf-client-ocr";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { suratFormSchema, type SuratFormValues } from "@/validators/surat";
@@ -164,6 +165,21 @@ export function LetterForm({
     }
   }
 
+  function applyAutofillFields(
+    fields: Partial<SuratFormValues>,
+    extractedText: string,
+    infoMessage: string,
+  ) {
+    (Object.keys(fields) as Array<keyof SuratFormValues>).forEach((key) => {
+      if (key in fields) {
+        setValue(key, (fields[key] as string) ?? "");
+      }
+    });
+
+    setValue("ocr_text", extractedText);
+    setOcrInfo(infoMessage);
+  }
+
   async function runSmartAutofill() {
     if (!file) {
       await Swal.fire({
@@ -186,6 +202,7 @@ export function LetterForm({
         setOcrInfo("Mengekstrak teks dari PDF...");
         const formData = new FormData();
         formData.append("file", file);
+        let parsedFromTextLayer = false;
 
         const ocrResponse = await fetch("/api/ingestion", {
           method: "POST",
@@ -195,17 +212,13 @@ export function LetterForm({
         const ocrResult = await ocrResponse.json();
 
         if (!ocrResponse.ok) {
-          throw new Error(ocrResult.message || "Gagal mengekstrak teks PDF");
-        }
-
-        // Jika backend langsung kembalikan fields (PDF path), gunakan langsung
-        if (ocrResult.data?.fields) {
-          const fields = ocrResult.data.fields;
-          (Object.keys(fields) as Array<keyof SuratFormValues>).forEach((key) => {
-            if (key in fields) setValue(key, (fields[key] as string) ?? "");
-          });
-          setValue("ocr_text", ocrResult.data.extractedText || "");
-          setOcrInfo("PDF berhasil dibaca dan dianalisis AI.");
+          extractedText = "";
+        } else if (ocrResult.data?.fields && ocrResult.data?.extractedText?.trim()) {
+          applyAutofillFields(
+            ocrResult.data.fields as Partial<SuratFormValues>,
+            ocrResult.data.extractedText,
+            "PDF berhasil dibaca dan dianalisis AI.",
+          );
           await Swal.fire({
             icon: "success",
             title: "Berhasil!",
@@ -213,9 +226,25 @@ export function LetterForm({
             confirmButtonColor: "#2563eb",
           });
           return;
+        } else {
+          extractedText = ocrResult.data?.extractedText || "";
+          parsedFromTextLayer = extractedText.trim().length >= 10;
         }
 
-        extractedText = ocrResult.data?.extractedText || "";
+        if (!parsedFromTextLayer) {
+          setOcrInfo("PDF scan terdeteksi. Menjalankan OCR halaman PDF...");
+          const fallback = await extractTextFromPdfWithOcr(file, (message) => {
+            setOcrInfo(message);
+          });
+
+          extractedText = fallback.text;
+
+          if (fallback.truncated && extractedText.trim()) {
+            setOcrInfo(
+              `OCR selesai untuk ${fallback.processedPages} halaman pertama dari ${fallback.totalPages} halaman PDF.`,
+            );
+          }
+        }
       } else {
         // ── Gambar (JPG/PNG): OCR di frontend pakai Tesseract ──
         setOcrInfo("Sedang membaca teks dari gambar (Tesseract OCR)...");
@@ -245,13 +274,11 @@ export function LetterForm({
         throw new Error(result.message || "AI gagal memproses teks");
       }
 
-      const fields = result.data.fields as Record<string, string>;
-      (Object.keys(fields) as Array<keyof SuratFormValues>).forEach((key) => {
-        if (key in fields) setValue(key, (fields[key] as string) ?? "");
-      });
-
-      setValue("ocr_text", extractedText);
-      setOcrInfo("OCR + AI berhasil membaca dan mengisi data surat.");
+      applyAutofillFields(
+        result.data.fields as Partial<SuratFormValues>,
+        extractedText,
+        "OCR + AI berhasil membaca dan mengisi data surat.",
+      );
 
       await Swal.fire({
         icon: "success",

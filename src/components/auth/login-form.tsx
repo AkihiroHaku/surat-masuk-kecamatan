@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Swal from "sweetalert2";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { loginSchema, type LoginFormValues } from "@/validators/auth";
@@ -12,6 +13,7 @@ import { loginSchema, type LoginFormValues } from "@/validators/auth";
 export function LoginForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -64,7 +66,22 @@ export function LoginForm() {
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium">Kata sandi</label>
-        <Input {...register("password")} type="password" placeholder="********" />
+        <div className="relative">
+          <Input 
+            {...register("password")} 
+            type={showPassword ? "text" : "password"} 
+            placeholder="********" 
+            className="pr-10"
+          />
+          <button
+            type="button"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+            onClick={() => setShowPassword(!showPassword)}
+            tabIndex={-1}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
         {errors.password ? (
           <p className="text-sm text-danger">{errors.password.message}</p>
         ) : null}

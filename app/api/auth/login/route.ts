@@ -17,7 +17,21 @@ export async function POST(request: NextRequest) {
 
   const user = await findUserByEmail(parsed.data.email);
 
-  if (!user || !(await compare(parsed.data.password, user.password_hash))) {
+  console.log(`[AUTH DEBUG] Attempting login for email: ${parsed.data.email}`);
+  console.log(`[AUTH DEBUG] Auth Provider: Local/Mock`);
+
+  if (!user) {
+    console.log(`[AUTH DEBUG] 401 Unauthorized: User not found in mock data.`);
+    return NextResponse.json(
+      { message: "Email atau kata sandi tidak sesuai." },
+      { status: 401 },
+    );
+  }
+
+  const passwordMatch = await compare(parsed.data.password, user.password_hash);
+  
+  if (!passwordMatch) {
+    console.log(`[AUTH DEBUG] 401 Unauthorized: Password mismatch for ${user.email}.`);
     return NextResponse.json(
       { message: "Email atau kata sandi tidak sesuai." },
       { status: 401 },
@@ -31,5 +45,6 @@ export async function POST(request: NextRequest) {
     role: user.role,
   });
 
+  console.log(`[AUTH DEBUG] Login successful for: ${user.email} (Role: ${user.role})`);
   return NextResponse.json({ ok: true });
 }
